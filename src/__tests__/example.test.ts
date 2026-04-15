@@ -46,6 +46,18 @@ describe("Example Handlers", () => {
         expect(result.body.metadata).toHaveProperty("author", "test-author");
       }
     });
+
+    it("should return 400 when required fields are missing", async () => {
+      const invalidData = {
+        subject: "AP Biology",
+        // missing itemType, difficulty, content, metadata, securityLevel
+      };
+
+      const result = await createItemHandler(invalidData as any);
+
+      expect(result.statusCode).toBe(400);
+      expect(result.body).toHaveProperty("error");
+    });
   });
 
   describe("getItemHandler", () => {
