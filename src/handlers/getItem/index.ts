@@ -1,11 +1,11 @@
 /**
- * Example Handler
+ * Get Item Handler
  *
- * This demonstrates how to create a handler for the API.
- * You can use this as a template for implementing the required endpoints.
+ * Handles GET /api/items/:id
+ * Designed for AWS Lambda deployment via API Gateway.
  */
 
-import { storage } from "../storage/store";
+import { storage } from "../../storage/store";
 
 export async function getItemHandler(id: string) {
   try {
@@ -30,9 +30,3 @@ export async function getItemHandler(id: string) {
     };
   }
 }
-
-// TODO: Implement other handlers:
-// - updateItemHandler
-// - listItemsHandler
-// - createVersionHandler
-// - getAuditTrailHandler
