@@ -5,9 +5,10 @@
  * Designed for AWS Lambda deployment via API Gateway.
  */
 
-import { storage } from '../../storage/store.js';
+import { storage } from "../../storage/store";
+import { CreateItemRequest } from "../../types/item";
 
-export async function createItemHandler(data: any) {
+export async function createItemHandler(data: CreateItemRequest) {
   try {
     // TODO: Add validation using Zod
     const item = await storage.createItem(data);
@@ -17,10 +18,10 @@ export async function createItemHandler(data: any) {
       body: item,
     };
   } catch (error) {
-    console.error('Error creating item:', error);
+    console.error("Error creating item:", error);
     return {
       statusCode: 500,
-      body: { error: 'Internal server error' },
+      body: { error: "Internal server error" },
     };
   }
 }
