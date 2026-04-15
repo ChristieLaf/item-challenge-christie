@@ -9,6 +9,7 @@ import { createServer, IncomingMessage, ServerResponse } from "http";
 import { getItemHandler } from "./handlers/getItem/index";
 import { createItemHandler } from "./handlers/createItem/index";
 import { updateItemHandler } from "./handlers/updateItem/index";
+import { listItemsHandler } from "./handlers/listItems/index";
 
 const PORT = process.env.PORT || 3000;
 
@@ -42,10 +43,16 @@ async function handleRequest(req: IncomingMessage, res: ServerResponse) {
     let result;
 
     // Example routes - implement your own routing logic
-    if (method === "GET" && url === "/api/items/test") {
-      result = await getItemHandler("test");
-    } else if (method === "POST" && url === "/api/items") {
+    if (method === "POST" && url === "/api/items") {
       result = await createItemHandler(parsedBody);
+    } else if (
+      method === "GET" &&
+      url?.startsWith("/api/items") &&
+      !url.includes("/api/items/")
+    ) {
+      const queryString = url.split("?")[1] || "";
+      const params = Object.fromEntries(new URLSearchParams(queryString));
+      result = await listItemsHandler(params);
     } else if (method === "GET" && url?.startsWith("/api/items/")) {
       const id = url.split("/").pop();
       result = await getItemHandler(id!);
