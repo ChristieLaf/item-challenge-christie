@@ -46,4 +46,16 @@ describe("updateItemHandler", () => {
       expect(result.body.metadata).toHaveProperty("version", 2);
     }
   });
+
+  it("should return 404 when item does not exist", async () => {
+    const result = await updateItemHandler("non-existent-id", {
+      difficulty: 5,
+    });
+
+    expect(result.statusCode).toBe(404);
+    expect(result.body).toHaveProperty("error");
+    if ("error" in result.body) {
+      expect(result.body.error).toBe("Item not found");
+    }
+  });
 });
