@@ -8,6 +8,7 @@
 import { createServer, IncomingMessage, ServerResponse } from "http";
 import { getItemHandler } from "./handlers/getItem/index";
 import { createItemHandler } from "./handlers/createItem/index";
+import { updateItemHandler } from "./handlers/updateItem/index";
 
 const PORT = process.env.PORT || 3000;
 
@@ -48,6 +49,9 @@ async function handleRequest(req: IncomingMessage, res: ServerResponse) {
     } else if (method === "GET" && url?.startsWith("/api/items/")) {
       const id = url.split("/").pop();
       result = await getItemHandler(id!);
+    } else if (method === "PUT" && url?.startsWith("/api/items/")) {
+      const id = url.split("/").pop();
+      result = await updateItemHandler(id!, parsedBody);
     } else {
       result = {
         statusCode: 404,
