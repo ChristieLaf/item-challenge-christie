@@ -1,4 +1,5 @@
 import { describe, expect, it, vi, beforeEach } from "vitest";
+import type { APIGatewayProxyEvent } from "aws-lambda";
 import { createItemHandler } from "../handlers/createItem/index";
 
 vi.mock("../storage/store", () => ({
@@ -59,16 +60,16 @@ describe("createItemHandler", () => {
       securityLevel: "standard" as const,
     };
 
-    const result = await createItemHandler(itemData);
+    const event: APIGatewayProxyEvent = {
+      body: JSON.stringify(itemData),
+    } as APIGatewayProxyEvent;
+    const result = await createItemHandler(event);
+    const body = JSON.parse(result.body);
 
     expect(result.statusCode).toBe(201);
-    expect(result.body).toHaveProperty("id");
-    if ("subject" in result.body) {
-      expect(result.body.subject).toBe("AP Biology");
-    }
-    if ("metadata" in result.body) {
-      expect(result.body.metadata).toHaveProperty("author", "test-author");
-    }
+    expect(body).toHaveProperty("id");
+    expect(body.subject).toBe("AP Biology");
+    expect(body.metadata).toHaveProperty("author", "test-author");
   });
 
   it("should return 400 when required fields are missing", async () => {
@@ -76,9 +77,13 @@ describe("createItemHandler", () => {
       subject: "AP Biology", // missing itemType, difficulty, content, metadata, securityLevel
     };
 
-    const result = await createItemHandler(invalidData as any);
+    const event: APIGatewayProxyEvent = {
+      body: JSON.stringify(invalidData),
+    } as APIGatewayProxyEvent;
+    const result = await createItemHandler(event);
+    const body = JSON.parse(result.body);
 
     expect(result.statusCode).toBe(400);
-    expect(result.body).toHaveProperty("error");
+    expect(body).toHaveProperty("error");
   });
 });
