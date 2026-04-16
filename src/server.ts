@@ -44,7 +44,13 @@ async function handleRequest(req: IncomingMessage, res: ServerResponse) {
 
     // Example routes - implement your own routing logic
     if (method === "POST" && url === "/api/items") {
-      result = await createItemHandler(parsedBody);
+      const lambdaResult = await createItemHandler({
+        body: JSON.stringify(parsedBody),
+      } as any);
+      result = {
+        statusCode: lambdaResult.statusCode,
+        body: JSON.parse(lambdaResult.body),
+      };
     } else if (
       method === "GET" &&
       url?.startsWith("/api/items") &&
