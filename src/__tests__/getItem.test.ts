@@ -1,9 +1,22 @@
-import { describe, expect, it } from "vitest";
-import { createItemHandler } from "../handlers/createItem/index";
+import { describe, expect, it, vi, beforeEach } from "vitest";
 import { getItemHandler } from "../handlers/getItem/index";
 
+vi.mock("../storage/store", () => ({
+  storage: {
+    getItem: vi.fn(),
+  },
+}));
+
+import { storage } from "../storage/store";
+
 describe("getItemHandler", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
   it("should return 404 for non-existent item", async () => {
+    (storage.getItem as ReturnType<typeof vi.fn>).mockResolvedValue(null);
+
     const result = await getItemHandler("non-existent-id");
 
     expect(result.statusCode).toBe(404);
@@ -14,7 +27,8 @@ describe("getItemHandler", () => {
   });
 
   it("should retrieve an existing item", async () => {
-    const itemData = {
+    const mockItem = {
+      id: "123",
       subject: "AP Calculus",
       itemType: "free-response",
       difficulty: 4,
@@ -27,23 +41,21 @@ describe("getItemHandler", () => {
         author: "test-author",
         status: "approved",
         tags: ["calculus", "derivatives"],
+        created: 1234567890,
+        lastModified: 1234567890,
+        version: "v1",
       },
       securityLevel: "standard",
     };
 
-    const createResult = await createItemHandler(itemData);
-    expect(createResult.body).toHaveProperty("id");
-    if (!("id" in createResult.body)) {
-      throw new Error("Item creation failed");
-    }
-    const itemId = createResult.body.id;
+    (storage.getItem as ReturnType<typeof vi.fn>).mockResolvedValue(mockItem);
 
-    const getResult = await getItemHandler(itemId);
+    const result = await getItemHandler("123");
 
-    expect(getResult.statusCode).toBe(200);
-    expect(getResult.body).toHaveProperty("id", itemId);
-    if ("subject" in getResult.body) {
-      expect(getResult.body.subject).toBe("AP Calculus");
+    expect(result.statusCode).toBe(200);
+    expect(result.body).toHaveProperty("id", "123");
+    if ("subject" in result.body) {
+      expect(result.body.subject).toBe("AP Calculus");
     }
   });
 });
