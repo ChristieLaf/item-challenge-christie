@@ -54,4 +54,19 @@ describe("listItemsHandler", () => {
       expect(result.body.offset).toBe(0);
     }
   });
+
+  it("should return an empty list when no items exist", async () => {
+    (storage.listItems as ReturnType<typeof vi.fn>).mockResolvedValue({
+      items: [],
+      total: 0,
+    });
+
+    const result = await listItemsHandler({});
+
+    expect(result.statusCode).toBe(200);
+    if ("items" in result.body) {
+      expect(result.body.items).toHaveLength(0);
+      expect(result.body.total).toBe(0);
+    }
+  });
 });
