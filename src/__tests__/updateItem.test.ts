@@ -43,7 +43,7 @@ describe("updateItemHandler", () => {
     }
     if ("metadata" in result.body) {
       expect(result.body.metadata).toHaveProperty("status", "approved");
-      expect(result.body.metadata).toHaveProperty("version", 2);
+      expect(result.body.metadata).toHaveProperty("version", "v2");
     }
   });
 
