@@ -69,4 +69,13 @@ describe("listItemsHandler", () => {
       expect(result.body.total).toBe(0);
     }
   });
+
+  it("should return 400 when invalid query parameters are sent", async () => {
+    const result = await listItemsHandler({
+      limit: -1, // invalid, min is 1
+    });
+
+    expect(result.statusCode).toBe(400);
+    expect(result.body).toHaveProperty("error");
+  });
 });
