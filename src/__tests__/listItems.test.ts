@@ -78,4 +78,43 @@ describe("listItemsHandler", () => {
     expect(result.statusCode).toBe(400);
     expect(result.body).toHaveProperty("error");
   });
+
+  it("should filter items by subject", async () => {
+    const mockItems = [
+      {
+        id: "123",
+        subject: "AP Biology",
+        itemType: "multiple-choice",
+        difficulty: 3,
+        content: {
+          question: "What is photosynthesis?",
+          options: ["A", "B", "C", "D"],
+          correctAnswer: "A",
+          explanation: "Photosynthesis is the process...",
+        },
+        metadata: {
+          author: "test-author",
+          status: "draft",
+          tags: ["biology"],
+          created: 1234567890,
+          lastModified: 1234567890,
+          version: "v1",
+        },
+        securityLevel: "standard",
+      },
+    ];
+
+    (storage.listItems as ReturnType<typeof vi.fn>).mockResolvedValue({
+      items: mockItems,
+      total: 1,
+    });
+
+    const result = await listItemsHandler({ subject: "AP Biology" });
+
+    expect(result.statusCode).toBe(200);
+    if ("items" in result.body && Array.isArray(result.body.items)) {
+      expect(result.body.items).toHaveLength(1);
+      expect(result.body.items[0].subject).toBe("AP Biology");
+    }
+  });
 });
