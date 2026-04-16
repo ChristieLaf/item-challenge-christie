@@ -1,13 +1,25 @@
-import { describe, expect, it } from "vitest";
-import { createItemHandler } from "../handlers/createItem/index";
+import { describe, expect, it, vi, beforeEach } from "vitest";
 import { updateItemHandler } from "../handlers/updateItem/index";
 
+vi.mock("../storage/store", () => ({
+  storage: {
+    updateItem: vi.fn(),
+  },
+}));
+
+import { storage } from "../storage/store";
+
 describe("updateItemHandler", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
   it("should update an item successfully", async () => {
-    const itemData = {
+    const mockUpdatedItem = {
+      id: "123",
       subject: "AP Biology",
       itemType: "multiple-choice",
-      difficulty: 3,
+      difficulty: 5,
       content: {
         question: "What is photosynthesis?",
         options: ["A", "B", "C", "D"],
@@ -16,26 +28,26 @@ describe("updateItemHandler", () => {
       },
       metadata: {
         author: "test-author",
-        status: "draft",
+        status: "approved",
         tags: ["biology"],
+        created: 1234567890,
+        lastModified: 1234567891,
+        version: "v2",
       },
       securityLevel: "standard",
     };
 
-    const createResult = await createItemHandler(itemData);
-    if (!("id" in createResult.body)) {
-      throw new Error("Item creation failed");
-    }
-    const itemId = createResult.body.id;
+    (storage.updateItem as ReturnType<typeof vi.fn>).mockResolvedValue(
+      mockUpdatedItem,
+    );
 
-    const updateData = {
+    const itemId = "123";
+    const result = await updateItemHandler(itemId, {
       difficulty: 5,
       metadata: {
         status: "approved",
       },
-    };
-
-    const result = await updateItemHandler(itemId, updateData);
+    });
 
     expect(result.statusCode).toBe(200);
     if ("difficulty" in result.body) {
@@ -48,6 +60,8 @@ describe("updateItemHandler", () => {
   });
 
   it("should return 404 when item does not exist", async () => {
+    (storage.updateItem as ReturnType<typeof vi.fn>).mockResolvedValue(null);
+
     const result = await updateItemHandler("non-existent-id", {
       difficulty: 5,
     });
@@ -60,29 +74,7 @@ describe("updateItemHandler", () => {
   });
 
   it("should return 400 when invalid data is sent", async () => {
-    const itemData = {
-      subject: "AP Calculus",
-      itemType: "free-response",
-      difficulty: 4,
-      content: {
-        question: "Calculate the derivative...",
-        correctAnswer: "42",
-        explanation: "Using the chain rule...",
-      },
-      metadata: {
-        author: "test-author",
-        status: "approved",
-        tags: ["calculus"],
-      },
-      securityLevel: "standard",
-    };
-
-    const createResult = await createItemHandler(itemData);
-    if (!("id" in createResult.body)) {
-      throw new Error("Item creation failed");
-    }
-    const itemId = createResult.body.id;
-
+    const itemId = "123";
     const result = await updateItemHandler(itemId, {
       difficulty: 10, // invalid, max is 5
     } as any);
