@@ -1,4 +1,5 @@
 import { describe, expect, it, vi, beforeEach } from "vitest";
+import { APIGatewayProxyEvent } from "aws-lambda";
 import { updateItemHandler } from "../handlers/updateItem/index";
 
 vi.mock("../storage/store", () => ({
@@ -10,6 +11,21 @@ vi.mock("../storage/store", () => ({
 import { storage } from "../storage/store";
 
 describe("updateItemHandler", () => {
+  const createEvent = (id: string, body: any): APIGatewayProxyEvent => ({
+    body: JSON.stringify(body),
+    headers: {},
+    multiValueHeaders: {},
+    httpMethod: "PUT",
+    isBase64Encoded: false,
+    path: `/api/items/${id}`,
+    pathParameters: { id },
+    queryStringParameters: null,
+    multiValueQueryStringParameters: null,
+    stageVariables: null,
+    requestContext: {} as any,
+    resource: "",
+  });
+
   beforeEach(() => {
     vi.clearAllMocks();
   });
@@ -41,45 +57,66 @@ describe("updateItemHandler", () => {
       mockUpdatedItem,
     );
 
-    const itemId = "123";
-    const result = await updateItemHandler(itemId, {
-      difficulty: 5,
-      metadata: {
-        status: "approved",
-      },
-    });
+    const result = await updateItemHandler(
+      createEvent("123", {
+        difficulty: 5,
+        metadata: { status: "approved" },
+      }),
+    );
+    const body = JSON.parse(result.body);
 
     expect(result.statusCode).toBe(200);
-    if ("difficulty" in result.body) {
-      expect(result.body.difficulty).toBe(5);
-    }
-    if ("metadata" in result.body) {
-      expect(result.body.metadata).toHaveProperty("status", "approved");
-      expect(result.body.metadata).toHaveProperty("version", "v2");
-    }
+    expect(body.difficulty).toBe(5);
+    expect(body.metadata).toHaveProperty("status", "approved");
+    expect(body.metadata).toHaveProperty("version", "v2");
   });
 
   it("should return 404 when item does not exist", async () => {
     (storage.updateItem as ReturnType<typeof vi.fn>).mockResolvedValue(null);
 
-    const result = await updateItemHandler("non-existent-id", {
-      difficulty: 5,
-    });
+    const result = await updateItemHandler(
+      createEvent("non-existent-id", {
+        difficulty: 5,
+      }),
+    );
+    const body = JSON.parse(result.body);
 
     expect(result.statusCode).toBe(404);
-    expect(result.body).toHaveProperty("error");
-    if ("error" in result.body) {
-      expect(result.body.error).toBe("Item not found");
-    }
+    expect(body).toHaveProperty("error");
+    expect(body.error).toBe("Item not found");
   });
 
   it("should return 400 when invalid data is sent", async () => {
-    const itemId = "123";
-    const result = await updateItemHandler(itemId, {
-      difficulty: 10, // invalid, max is 5
-    } as any);
+    const result = await updateItemHandler(
+      createEvent("123", {
+        difficulty: 10, // invalid, max is 5
+      }),
+    );
+    const body = JSON.parse(result.body);
 
     expect(result.statusCode).toBe(400);
-    expect(result.body).toHaveProperty("error");
+    expect(body).toHaveProperty("error");
+  });
+
+  it("should return 400 when item ID is missing", async () => {
+    const result = await updateItemHandler({
+      pathParameters: null,
+      body: JSON.stringify({ difficulty: 5 }),
+      headers: {},
+      multiValueHeaders: {},
+      httpMethod: "PUT",
+      isBase64Encoded: false,
+      path: "/api/items/",
+      queryStringParameters: null,
+      multiValueQueryStringParameters: null,
+      stageVariables: null,
+      requestContext: {} as any,
+      resource: "",
+    });
+    const body = JSON.parse(result.body);
+
+    expect(result.statusCode).toBe(400);
+    expect(body).toHaveProperty("error");
+    expect(body.error).toBe("Item ID is required");
   });
 });
