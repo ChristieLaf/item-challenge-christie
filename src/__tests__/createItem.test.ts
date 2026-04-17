@@ -1,5 +1,5 @@
 import { describe, expect, it, vi, beforeEach } from "vitest";
-import type { APIGatewayProxyEvent } from "aws-lambda";
+import { APIGatewayProxyEvent } from "aws-lambda";
 import { createItemHandler } from "../handlers/createItem/index";
 
 vi.mock("../storage/store", () => ({
@@ -11,6 +11,21 @@ vi.mock("../storage/store", () => ({
 import { storage } from "../storage/store";
 
 describe("createItemHandler", () => {
+  const createEvent = (body: any): APIGatewayProxyEvent => ({
+    body: JSON.stringify(body),
+    headers: {},
+    multiValueHeaders: {},
+    httpMethod: "POST",
+    isBase64Encoded: false,
+    path: "/api/items",
+    pathParameters: null,
+    queryStringParameters: null,
+    multiValueQueryStringParameters: null,
+    stageVariables: null,
+    requestContext: {} as any,
+    resource: "",
+  });
+
   beforeEach(() => {
     vi.clearAllMocks();
   });
@@ -44,7 +59,7 @@ describe("createItemHandler", () => {
 
     const itemData = {
       subject: "AP Biology",
-      itemType: "multiple-choice" as const,
+      itemType: "multiple-choice",
       difficulty: 3,
       content: {
         question: "What is photosynthesis?",
@@ -54,16 +69,13 @@ describe("createItemHandler", () => {
       },
       metadata: {
         author: "test-author",
-        status: "draft" as const,
+        status: "draft",
         tags: ["biology", "photosynthesis"],
       },
-      securityLevel: "standard" as const,
+      securityLevel: "standard",
     };
 
-    const event: APIGatewayProxyEvent = {
-      body: JSON.stringify(itemData),
-    } as APIGatewayProxyEvent;
-    const result = await createItemHandler(event);
+    const result = await createItemHandler(createEvent(itemData));
     const body = JSON.parse(result.body);
 
     expect(result.statusCode).toBe(201);
@@ -77,10 +89,7 @@ describe("createItemHandler", () => {
       subject: "AP Biology", // missing itemType, difficulty, content, metadata, securityLevel
     };
 
-    const event: APIGatewayProxyEvent = {
-      body: JSON.stringify(invalidData),
-    } as APIGatewayProxyEvent;
-    const result = await createItemHandler(event);
+    const result = await createItemHandler(createEvent(invalidData));
     const body = JSON.parse(result.body);
 
     expect(result.statusCode).toBe(400);
