@@ -61,7 +61,13 @@ async function handleRequest(req: IncomingMessage, res: ServerResponse) {
       result = await listItemsHandler(params);
     } else if (method === "GET" && url?.startsWith("/api/items/")) {
       const id = url.split("/").pop();
-      result = await getItemHandler(id!);
+      const lambdaResult = await getItemHandler({
+        pathParameters: { id },
+      } as any);
+      result = {
+        statusCode: lambdaResult.statusCode,
+        body: JSON.parse(lambdaResult.body),
+      };
     } else if (method === "PUT" && url?.startsWith("/api/items/")) {
       const id = url.split("/").pop();
       result = await updateItemHandler(id!, parsedBody);
