@@ -1,3 +1,4 @@
+import { APIGatewayProxyEvent } from "aws-lambda";
 import { describe, expect, it, vi, beforeEach } from "vitest";
 import { getItemHandler } from "../handlers/getItem/index";
 
@@ -10,6 +11,21 @@ vi.mock("../storage/store", () => ({
 import { storage } from "../storage/store";
 
 describe("getItemHandler", () => {
+  const createEvent = (id: string): APIGatewayProxyEvent => ({
+    body: null,
+    headers: {},
+    multiValueHeaders: {},
+    httpMethod: "GET",
+    isBase64Encoded: false,
+    path: `/api/items/${id}`,
+    pathParameters: { id },
+    queryStringParameters: null,
+    multiValueQueryStringParameters: null,
+    stageVariables: null,
+    requestContext: {} as any,
+    resource: "",
+  });
+
   beforeEach(() => {
     vi.clearAllMocks();
   });
@@ -17,13 +33,12 @@ describe("getItemHandler", () => {
   it("should return 404 for non-existent item", async () => {
     (storage.getItem as ReturnType<typeof vi.fn>).mockResolvedValue(null);
 
-    const result = await getItemHandler("non-existent-id");
+    const result = await getItemHandler(createEvent("non-existent-id"));
+    const body = JSON.parse(result.body);
 
     expect(result.statusCode).toBe(404);
-    expect(result.body).toHaveProperty("error");
-    if ("error" in result.body) {
-      expect(result.body.error).toBe("Item not found");
-    }
+    expect(body).toHaveProperty("error");
+    expect(body.error).toBe("Item not found");
   });
 
   it("should retrieve an existing item", async () => {
@@ -50,12 +65,11 @@ describe("getItemHandler", () => {
 
     (storage.getItem as ReturnType<typeof vi.fn>).mockResolvedValue(mockItem);
 
-    const result = await getItemHandler("123");
+    const result = await getItemHandler(createEvent("123"));
+    const body = JSON.parse(result.body);
 
     expect(result.statusCode).toBe(200);
-    expect(result.body).toHaveProperty("id", "123");
-    if ("subject" in result.body) {
-      expect(result.body.subject).toBe("AP Calculus");
-    }
+    expect(body).toHaveProperty("id", "123");
+    expect(body.subject).toBe("AP Calculus");
   });
 });
