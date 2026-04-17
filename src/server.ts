@@ -70,7 +70,14 @@ async function handleRequest(req: IncomingMessage, res: ServerResponse) {
       };
     } else if (method === "PUT" && url?.startsWith("/api/items/")) {
       const id = url.split("/").pop();
-      result = await updateItemHandler(id!, parsedBody);
+      const lambdaResult = await updateItemHandler({
+        pathParameters: { id },
+        body: JSON.stringify(parsedBody),
+      } as any);
+      result = {
+        statusCode: lambdaResult.statusCode,
+        body: JSON.parse(lambdaResult.body),
+      };
     } else {
       result = {
         statusCode: 404,
