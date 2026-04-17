@@ -1,4 +1,5 @@
 import { describe, expect, it, vi, beforeEach } from "vitest";
+import { APIGatewayProxyEvent } from "aws-lambda";
 import { listItemsHandler } from "../handlers/listItems/index";
 
 vi.mock("../storage/store", () => ({
@@ -10,6 +11,23 @@ vi.mock("../storage/store", () => ({
 import { storage } from "../storage/store";
 
 describe("listItemsHandler", () => {
+  const createEvent = (
+    queryStringParameters: Record<string, string> | null = null,
+  ): APIGatewayProxyEvent => ({
+    body: null,
+    headers: {},
+    multiValueHeaders: {},
+    httpMethod: "GET",
+    isBase64Encoded: false,
+    path: "/api/items",
+    pathParameters: null,
+    queryStringParameters,
+    multiValueQueryStringParameters: null,
+    stageVariables: null,
+    requestContext: {} as any,
+    resource: "",
+  });
+
   beforeEach(() => {
     vi.clearAllMocks();
   });
@@ -44,15 +62,14 @@ describe("listItemsHandler", () => {
       total: 1,
     });
 
-    const result = await listItemsHandler({});
+    const result = await listItemsHandler(createEvent());
+    const body = JSON.parse(result.body);
 
     expect(result.statusCode).toBe(200);
-    if ("items" in result.body) {
-      expect(result.body.items).toHaveLength(1);
-      expect(result.body.total).toBe(1);
-      expect(result.body.limit).toBe(10);
-      expect(result.body.offset).toBe(0);
-    }
+    expect(body.items).toHaveLength(1);
+    expect(body.total).toBe(1);
+    expect(body.limit).toBe(10);
+    expect(body.offset).toBe(0);
   });
 
   it("should return an empty list when no items exist", async () => {
@@ -61,22 +78,20 @@ describe("listItemsHandler", () => {
       total: 0,
     });
 
-    const result = await listItemsHandler({});
+    const result = await listItemsHandler(createEvent());
+    const body = JSON.parse(result.body);
 
     expect(result.statusCode).toBe(200);
-    if ("items" in result.body) {
-      expect(result.body.items).toHaveLength(0);
-      expect(result.body.total).toBe(0);
-    }
+    expect(body.items).toHaveLength(0);
+    expect(body.total).toBe(0);
   });
 
   it("should return 400 when invalid query parameters are sent", async () => {
-    const result = await listItemsHandler({
-      limit: -1, // invalid, min is 1
-    });
+    const result = await listItemsHandler(createEvent({ limit: "-1" }));
+    const body = JSON.parse(result.body);
 
     expect(result.statusCode).toBe(400);
-    expect(result.body).toHaveProperty("error");
+    expect(body).toHaveProperty("error");
   });
 
   it("should filter items by subject", async () => {
@@ -109,12 +124,13 @@ describe("listItemsHandler", () => {
       total: 1,
     });
 
-    const result = await listItemsHandler({ subject: "AP Biology" });
+    const result = await listItemsHandler(
+      createEvent({ subject: "AP Biology" }),
+    );
+    const body = JSON.parse(result.body);
 
     expect(result.statusCode).toBe(200);
-    if ("items" in result.body && Array.isArray(result.body.items)) {
-      expect(result.body.items).toHaveLength(1);
-      expect(result.body.items[0].subject).toBe("AP Biology");
-    }
+    expect(body.items).toHaveLength(1);
+    expect(body.items[0].subject).toBe("AP Biology");
   });
 });
