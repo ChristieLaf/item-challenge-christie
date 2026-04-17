@@ -58,7 +58,13 @@ async function handleRequest(req: IncomingMessage, res: ServerResponse) {
     ) {
       const queryString = url.split("?")[1] || "";
       const params = Object.fromEntries(new URLSearchParams(queryString));
-      result = await listItemsHandler(params);
+      const lambdaResult = await listItemsHandler({
+        queryStringParameters: Object.keys(params).length > 0 ? params : null,
+      } as any);
+      result = {
+        statusCode: lambdaResult.statusCode,
+        body: JSON.parse(lambdaResult.body),
+      };
     } else if (method === "GET" && url?.startsWith("/api/items/")) {
       const id = url.split("/").pop();
       const lambdaResult = await getItemHandler({

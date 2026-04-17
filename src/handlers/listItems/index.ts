@@ -5,25 +5,36 @@
  * Designed for AWS Lambda deployment via API Gateway.
  */
 
-import { z } from 'zod';
-import { storage } from '../../storage/store';
-import { ListItemsQuery } from '../../types/item';
+import { APIGatewayProxyEvent, APIGatewayProxyResult } from "aws-lambda";
+import { z } from "zod";
+import { storage } from "../../storage/store";
 
 const listItemsSchema = z.object({
   limit: z.coerce.number().min(1).max(100).optional(),
   offset: z.coerce.number().min(0).optional(),
   subject: z.string().optional(),
-  status: z.enum(['draft', 'review', 'approved', 'archived']).optional(),
+  status: z.enum(["draft", "review", "approved", "archived"]).optional(),
 });
 
-export async function listItemsHandler(query: ListItemsQuery) {
+const headers = {
+  "Content-Type": "application/json",
+  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Methods": "OPTIONS,POST,GET,PUT",
+  "Access-Control-Allow-Headers": "Content-Type",
+};
+
+export const listItemsHandler = async (
+  event: APIGatewayProxyEvent
+): Promise<APIGatewayProxyResult> => {
   try {
+    const query = event.queryStringParameters || {};
     const validated = listItemsSchema.safeParse(query);
 
     if (!validated.success) {
       return {
         statusCode: 400,
-        body: { error: validated.error.errors },
+        headers,
+        body: JSON.stringify({ error: validated.error.errors }),
       };
     }
 
@@ -31,18 +42,20 @@ export async function listItemsHandler(query: ListItemsQuery) {
 
     return {
       statusCode: 200,
-      body: {
+      headers,
+      body: JSON.stringify({
         items: result.items,
         total: result.total,
         limit: validated.data.limit || 10,
         offset: validated.data.offset || 0,
-      },
+      }),
     };
   } catch (error) {
-    console.error('Error listing items:', error);
+    console.error("Error listing items:", error);
     return {
       statusCode: 500,
-      body: { error: 'Internal server error' },
+      headers,
+      body: JSON.stringify({ error: "Internal server error" }),
     };
   }
-}
+};
