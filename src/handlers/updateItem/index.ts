@@ -6,30 +6,8 @@
  */
 
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from "aws-lambda";
-import { z } from "zod";
 import { storage } from "../../storage/store";
-
-const updateItemSchema = z.object({
-  subject: z.string().optional(),
-  itemType: z.enum(["multiple-choice", "free-response", "essay"]).optional(),
-  difficulty: z.number().min(1).max(5).optional(),
-  content: z
-    .object({
-      question: z.string().optional(),
-      options: z.array(z.string()).optional(),
-      correctAnswer: z.string().optional(),
-      explanation: z.string().optional(),
-    })
-    .optional(),
-  metadata: z
-    .object({
-      author: z.string().optional(),
-      status: z.enum(["draft", "review", "approved", "archived"]).optional(),
-      tags: z.array(z.string()).optional(),
-    })
-    .optional(),
-  securityLevel: z.enum(["standard", "secure", "highly-secure"]).optional(),
-});
+import { UpdateItemSchema } from "../../types/schemas";
 
 const headers = {
   "Content-Type": "application/json",
@@ -53,7 +31,7 @@ export const updateItemHandler = async (
     }
 
     const data = JSON.parse(event.body || "{}");
-    const validated = updateItemSchema.safeParse(data);
+    const validated = UpdateItemSchema.safeParse(data);
 
     if (!validated.success) {
       return {
