@@ -8,6 +8,7 @@
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from "aws-lambda";
 import { storage } from "../../storage/store";
 import { ItemSchema } from "../../types/schemas";
+import { logInfo, logError } from "../../logger/logger";
 
 const headers = {
   "Content-Type": "application/json",
@@ -34,13 +35,15 @@ export const createItemHandler = async (
 
     const item = await storage.createItem(validated.data);
 
+    logInfo("createItemHandler", "Item created successfully", { id: item.id });
+
     return {
       statusCode: 201,
       headers,
       body: JSON.stringify(item),
     };
   } catch (error) {
-    console.error("Error creating item:", error);
+    logError("createItemHandler", error);
     return {
       statusCode: 500,
       headers,

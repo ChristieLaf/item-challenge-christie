@@ -8,6 +8,7 @@
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from "aws-lambda";
 import { storage } from "../../storage/store";
 import { ListItemsSchema } from "../../types/schemas";
+import { logInfo, logError } from "../../logger/logger";
 
 const headers = {
   "Content-Type": "application/json",
@@ -17,7 +18,7 @@ const headers = {
 };
 
 export const listItemsHandler = async (
-  event: APIGatewayProxyEvent
+  event: APIGatewayProxyEvent,
 ): Promise<APIGatewayProxyResult> => {
   try {
     const query = event.queryStringParameters || {};
@@ -33,6 +34,10 @@ export const listItemsHandler = async (
 
     const result = await storage.listItems(validated.data);
 
+    logInfo("listItemsHandler", "Items listed successfully", {
+      total: result.total,
+    });
+
     return {
       statusCode: 200,
       headers,
@@ -44,7 +49,7 @@ export const listItemsHandler = async (
       }),
     };
   } catch (error) {
-    console.error("Error listing items:", error);
+    logError("listItemsHandler", error);
     return {
       statusCode: 500,
       headers,

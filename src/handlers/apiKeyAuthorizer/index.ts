@@ -6,11 +6,12 @@ import {
   SecretsManagerClient,
   GetSecretValueCommand,
 } from "@aws-sdk/client-secrets-manager";
+import { logInfo, logError } from "../../logger/logger";
 
 const client = new SecretsManagerClient({ region: process.env.AWS_REGION });
 
 export const handler = async (
-  event: APIGatewayRequestAuthorizerEvent
+  event: APIGatewayRequestAuthorizerEvent,
 ): Promise<APIGatewayAuthorizerResult> => {
   try {
     const apiKey = event.headers?.["x-api-key"];
@@ -22,7 +23,7 @@ export const handler = async (
     const secret = await client.send(
       new GetSecretValueCommand({
         SecretId: process.env.API_KEY_SECRET_NAME,
-      })
+      }),
     );
 
     const validApiKey = secret.SecretString;
@@ -31,8 +32,11 @@ export const handler = async (
       throw new Error("Unauthorized");
     }
 
+    logInfo("apiKeyAuthorizer", "Request authorized successfully");
+
     return generatePolicy("user", "Allow", event.methodArn);
-  } catch {
+  } catch (error) {
+    logError("apiKeyAuthorizer", error);
     throw new Error("Unauthorized");
   }
 };
@@ -40,7 +44,7 @@ export const handler = async (
 const generatePolicy = (
   principalId: string,
   effect: "Allow" | "Deny",
-  resource: string
+  resource: string,
 ): APIGatewayAuthorizerResult => ({
   principalId,
   policyDocument: {

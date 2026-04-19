@@ -8,6 +8,7 @@
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from "aws-lambda";
 import { storage } from "../../storage/store";
 import { UpdateItemSchema } from "../../types/schemas";
+import { logInfo, logError } from "../../logger/logger";
 
 const headers = {
   "Content-Type": "application/json",
@@ -51,13 +52,15 @@ export const updateItemHandler = async (
       };
     }
 
+    logInfo("updateItemHandler", "Item updated successfully", { id });
+
     return {
       statusCode: 200,
       headers,
       body: JSON.stringify(item),
     };
   } catch (error) {
-    console.error("Error updating item:", error);
+    logError("updateItemHandler", error);
     return {
       statusCode: 500,
       headers,

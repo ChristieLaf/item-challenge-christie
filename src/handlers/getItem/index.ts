@@ -7,6 +7,7 @@
 
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from "aws-lambda";
 import { storage } from "../../storage/store";
+import { logInfo, logError } from "../../logger/logger";
 
 const headers = {
   "Content-Type": "application/json",
@@ -16,7 +17,7 @@ const headers = {
 };
 
 export const getItemHandler = async (
-  event: APIGatewayProxyEvent
+  event: APIGatewayProxyEvent,
 ): Promise<APIGatewayProxyResult> => {
   try {
     const id = event.pathParameters?.id;
@@ -39,13 +40,16 @@ export const getItemHandler = async (
       };
     }
 
+    logInfo("getItemHandler", "Item retrieved successfully", { id });
+
     return {
       statusCode: 200,
       headers,
       body: JSON.stringify(item),
     };
   } catch (error) {
-    console.error("Error getting item:", error);
+    logError("getItemHandler", error);
+
     return {
       statusCode: 500,
       headers,
