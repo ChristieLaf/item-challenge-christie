@@ -5,6 +5,7 @@
  * Run with: pnpm dev
  */
 
+import 'dotenv/config';
 import { createServer, IncomingMessage, ServerResponse } from "http";
 import { getItemHandler } from "./handlers/getItem/index";
 import { createItemHandler } from "./handlers/createItem/index";
