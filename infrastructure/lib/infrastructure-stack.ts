@@ -26,6 +26,12 @@ export class InfrastructureStack extends cdk.Stack {
         stage === "prod" ? cdk.RemovalPolicy.RETAIN : cdk.RemovalPolicy.DESTROY,
     });
 
+    const apiKeySecret = secretsmanager.Secret.fromSecretNameV2(
+      this,
+      "ApiKeySecret",
+      `exam-items-${stage}-api-key`,
+    );
+
     const lambdaEnvironment = {
       DYNAMODB_TABLE_NAME: examItemsTable.tableName,
       STAGE: stage,
@@ -40,6 +46,23 @@ export class InfrastructureStack extends cdk.Stack {
       mainFields: ["main", "module"],
       externalModules: ["aws-sdk"],
     };
+
+    const authorizerLambda = new nodejs.NodejsFunction(
+      this,
+      "AuthorizerFunction",
+      {
+        functionName: `exam-items-${stage}-authorizer`,
+        runtime: lambda.Runtime.NODEJS_22_X,
+        entry: path.join(__dirname, "lambdas/apiKeyAuthorizer/index.ts"),
+        handler: "handler",
+        environment: {
+          API_KEY_SECRET_NAME: apiKeySecret.secretName,
+          STAGE: stage,
+        },
+        timeout: cdk.Duration.seconds(30),
+        bundling: bundlingOptions,
+      },
+    );
 
     // Lambda Functions
     const createExamItemLambda = new nodejs.NodejsFunction(
@@ -104,6 +127,8 @@ export class InfrastructureStack extends cdk.Stack {
     examItemsTable.grantReadWriteData(updateExamItemLambda);
     examItemsTable.grantReadData(listExamItemsLambda);
 
+    apiKeySecret.grantRead(authorizerLambda);
+
     // API Gateway
     const api = new apigateway.RestApi(this, "ExamAPI", {
       restApiName: `Exam API ${stage}`,
@@ -119,6 +144,17 @@ export class InfrastructureStack extends cdk.Stack {
       },
     });
 
+    const authorizer = new apigateway.RequestAuthorizer(
+      this,
+      "ApiKeyAuthorizer",
+      {
+        handler: authorizerLambda,
+        identitySources: [apigateway.IdentitySource.header("x-api-key")],
+        authorizerName: `exam-items-${stage}-authorizer`,
+        resultsCacheTtl: cdk.Duration.minutes(5),
+      },
+    );
+
     const apiResource = api.root.addResource("api");
     const itemsResource = apiResource.addResource("items");
     const itemResource = itemsResource.addResource("{id}");
@@ -126,21 +162,25 @@ export class InfrastructureStack extends cdk.Stack {
     itemsResource.addMethod(
       "POST",
       new apigateway.LambdaIntegration(createExamItemLambda),
+      { authorizer },
     );
 
     itemsResource.addMethod(
       "GET",
       new apigateway.LambdaIntegration(listExamItemsLambda),
+      { authorizer },
     );
 
     itemResource.addMethod(
       "GET",
       new apigateway.LambdaIntegration(getExamItemLambda),
+      { authorizer },
     );
 
     itemResource.addMethod(
       "PUT",
       new apigateway.LambdaIntegration(updateExamItemLambda),
+      { authorizer },
     );
   }
 }
