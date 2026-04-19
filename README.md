@@ -115,6 +115,49 @@ pnpm dev
 - **Testing:** Well-structured tests with good coverage of core functionality (optional but encouraged)
 - **Prioritization:** How you approach the time constraint
 
+## Running Locally
+
+```bash
+pnpm install
+pnpm dev
+```
+
+The local server runs at `http://localhost:3000` and uses in-memory storage by default. To connect to the deployed DynamoDB table locally, create a `.env` file at the project root:
+
+```
+USE_DYNAMODB=true
+DYNAMODB_TABLE_NAME=exam-items-dev
+```
+
+## Submission Notes
+
+### Deployed API
+The API is deployed and available at:
+
+https://d7inheammf.execute-api.us-east-1.amazonaws.com/prod/
+
+### Endpoints Implemented
+- `POST /api/items` — Create a new exam item
+- `GET /api/items/:id` — Retrieve an item by ID
+- `PUT /api/items/:id` — Partially update an item
+- `GET /api/items` — List items with pagination and filtering
+
+### Postman Collections
+Postman collections are included in the root directory as `Item Challenge - Deployed.postman_collection.json` and  `Item Challenge - Local.postman_collection.json`. Import it into Postman to test all endpoints against the deployed and local API.
+
+All deployed requests require an `x-api-key` header. Please contact Jeb directly for the API key value that I shared with him.
+
+### Query Parameters
+`GET /api/items` supports the following query parameters:
+- `limit` — number of items to return (default: 10, max: 100)
+- `offset` — number of items to skip for pagination (default: 0)
+- `subject` — filter by subject (e.g. `AP Biology`)
+- `status` — filter by status (`draft`, `review`, `approved`, `archived`)
+
+Examples:
+- Local: `http://localhost:3000/api/items?limit=2&offset=0`
+- Deployed: `https://d7inheammf.execute-api.us-east-1.amazonaws.com/prod/api/items?subject=AP Biology`
+
 ## Submission
 
 Please fork this repository and submit your completed solution by sharing your forked repo link with your recruiter.
