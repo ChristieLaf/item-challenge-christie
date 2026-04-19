@@ -58,7 +58,7 @@ describe("getItemHandler", () => {
         tags: ["calculus", "derivatives"],
         created: 1234567890,
         lastModified: 1234567890,
-        version: "v1",
+        version: 1,
       },
       securityLevel: "standard",
     };

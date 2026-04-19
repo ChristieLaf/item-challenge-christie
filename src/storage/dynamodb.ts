@@ -45,7 +45,7 @@ export class DynamoDBStorage implements ItemStorage {
     });
 
     this.client = DynamoDBDocumentClient.from(dynamoClient);
-    this.tableName = process.env.DYNAMODB_TABLE_NAME || "ExamItems";
+    this.tableName = process.env.DYNAMODB_TABLE_NAME || "exam-items-dev";
   }
 
   async createItem(data: CreateItemRequest): Promise<ExamItem> {
@@ -57,7 +57,7 @@ export class DynamoDBStorage implements ItemStorage {
         ...data.metadata,
         created: now,
         lastModified: now,
-        version: "v1",
+        version: 1,
       },
     };
 
@@ -99,7 +99,7 @@ export class DynamoDBStorage implements ItemStorage {
         ...existing.metadata,
         ...(data.metadata || {}),
         lastModified: Date.now(),
-        version: `v${parseInt(existing.metadata.version.slice(1)) + 1}`,
+        version: existing.metadata.version + 1
       },
     };
 

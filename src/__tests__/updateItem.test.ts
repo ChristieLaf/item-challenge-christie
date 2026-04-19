@@ -48,7 +48,7 @@ describe("updateItemHandler", () => {
         tags: ["biology"],
         created: 1234567890,
         lastModified: 1234567891,
-        version: "v2",
+        version: 2,
       },
       securityLevel: "standard",
     };
@@ -68,7 +68,7 @@ describe("updateItemHandler", () => {
     expect(result.statusCode).toBe(200);
     expect(body.difficulty).toBe(5);
     expect(body.metadata).toHaveProperty("status", "approved");
-    expect(body.metadata).toHaveProperty("version", "v2");
+    expect(body.metadata).toHaveProperty("version", 2);
   });
 
   it("should return 404 when item does not exist", async () => {

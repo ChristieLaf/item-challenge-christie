@@ -27,7 +27,7 @@ export class MemoryStorage implements ItemStorage {
         ...data.metadata,
         created: now,
         lastModified: now,
-        version: "v1",
+        version: 1,
       },
     };
 
@@ -58,7 +58,7 @@ export class MemoryStorage implements ItemStorage {
         ...item.metadata,
         ...(data.metadata || {}),
         lastModified: Date.now(),
-        version: `v${parseInt(item.metadata.version.slice(1)) + 1}`,
+        version: item.metadata.version + 1,
       },
     };
 
@@ -106,7 +106,7 @@ export class MemoryStorage implements ItemStorage {
       ...item,
       metadata: {
         ...item.metadata,
-        version: `v${parseInt(item.metadata.version.slice(1)) + 1}`,
+        version: item.metadata.version + 1,
         lastModified: Date.now(),
       },
     };
