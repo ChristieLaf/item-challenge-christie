@@ -53,7 +53,7 @@ export class InfrastructureStack extends cdk.Stack {
       {
         functionName: `exam-items-${stage}-authorizer`,
         runtime: lambda.Runtime.NODEJS_22_X,
-        entry: path.join(__dirname, "lambdas/apiKeyAuthorizer/index.ts"),
+        entry: path.join(__dirname, "../../src/handlers/apiKeyAuthorizer/index.ts"),
         handler: "handler",
         environment: {
           API_KEY_SECRET_NAME: apiKeySecret.secretName,
@@ -151,7 +151,7 @@ export class InfrastructureStack extends cdk.Stack {
         handler: authorizerLambda,
         identitySources: [apigateway.IdentitySource.header("x-api-key")],
         authorizerName: `exam-items-${stage}-authorizer`,
-        resultsCacheTtl: cdk.Duration.minutes(5),
+        resultsCacheTtl: cdk.Duration.seconds(0),
       },
     );
 
