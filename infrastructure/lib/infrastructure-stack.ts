@@ -17,6 +17,7 @@ export class InfrastructureStack extends cdk.Stack {
 
     const { stage } = props;
 
+    // DynamoDB Table
     const examItemsTable = new dynamodb.Table(this, "ExamItemsTable", {
       tableName: `exam-items-${stage}`,
       partitionKey: { name: "id", type: dynamodb.AttributeType.STRING },
@@ -40,11 +41,12 @@ export class InfrastructureStack extends cdk.Stack {
       externalModules: ["aws-sdk"],
     };
 
+    // Lambda Functions
     const createExamItemLambda = new nodejs.NodejsFunction(
       this,
       "CreateExamItemFunction",
       {
-        functionName: `todo-app-${stage}-createExamItem`,
+        functionName: `exam-items-${stage}-createExamItem`,
         runtime: lambda.Runtime.NODEJS_22_X,
         entry: path.join(__dirname, "../src/handlers/createItem/index.ts"),
         handler: "createItemHandler",
@@ -54,8 +56,55 @@ export class InfrastructureStack extends cdk.Stack {
       },
     );
 
-    examItemsTable.grantReadWriteData(createExamItemLambda);
+    const getExamItemLambda = new nodejs.NodejsFunction(
+      this,
+      "GetExamItemFunction",
+      {
+        functionName: `exam-items-${stage}-getExamItem`,
+        runtime: lambda.Runtime.NODEJS_22_X,
+        entry: path.join(__dirname, "../src/handlers/getItem/index.ts"),
+        handler: "getItemHandler",
+        environment: lambdaEnvironment,
+        timeout: cdk.Duration.seconds(30),
+        bundling: bundlingOptions,
+      },
+    );
 
+    const updateExamItemLambda = new nodejs.NodejsFunction(
+      this,
+      "UpdateExamItemFunction",
+      {
+        functionName: `exam-items-${stage}-updateExamItem`,
+        runtime: lambda.Runtime.NODEJS_22_X,
+        entry: path.join(__dirname, "../src/handlers/updateItem/index.ts"),
+        handler: "updateItemHandler",
+        environment: lambdaEnvironment,
+        timeout: cdk.Duration.seconds(30),
+        bundling: bundlingOptions,
+      },
+    );
+
+    const listExamItemsLambda = new nodejs.NodejsFunction(
+      this,
+      "ListExamItemsFunction",
+      {
+        functionName: `exam-items-${stage}-listExamItems`,
+        runtime: lambda.Runtime.NODEJS_22_X,
+        entry: path.join(__dirname, "../src/handlers/listItems/index.ts"),
+        handler: "listItemsHandler",
+        environment: lambdaEnvironment,
+        timeout: cdk.Duration.seconds(30),
+        bundling: bundlingOptions,
+      },
+    );
+
+    // IAM Permissions
+    examItemsTable.grantReadWriteData(createExamItemLambda);
+    examItemsTable.grantReadData(getExamItemLambda);
+    examItemsTable.grantReadWriteData(updateExamItemLambda);
+    examItemsTable.grantReadData(listExamItemsLambda);
+
+    // API Gateway
     const api = new apigateway.RestApi(this, "ExamAPI", {
       restApiName: `Exam API ${stage}`,
       defaultCorsPreflightOptions: {
@@ -72,10 +121,26 @@ export class InfrastructureStack extends cdk.Stack {
 
     const apiResource = api.root.addResource("api");
     const itemsResource = apiResource.addResource("items");
+    const itemResource = itemsResource.addResource("{id}");
 
     itemsResource.addMethod(
       "POST",
       new apigateway.LambdaIntegration(createExamItemLambda),
+    );
+
+    itemsResource.addMethod(
+      "GET",
+      new apigateway.LambdaIntegration(listExamItemsLambda),
+    );
+
+    itemResource.addMethod(
+      "GET",
+      new apigateway.LambdaIntegration(getExamItemLambda),
+    );
+
+    itemResource.addMethod(
+      "PUT",
+      new apigateway.LambdaIntegration(updateExamItemLambda),
     );
   }
 }
