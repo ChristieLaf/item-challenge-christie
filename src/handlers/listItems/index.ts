@@ -6,15 +6,8 @@
  */
 
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from "aws-lambda";
-import { z } from "zod";
 import { storage } from "../../storage/store";
-
-const listItemsSchema = z.object({
-  limit: z.coerce.number().min(1).max(100).optional(),
-  offset: z.coerce.number().min(0).optional(),
-  subject: z.string().optional(),
-  status: z.enum(["draft", "review", "approved", "archived"]).optional(),
-});
+import { ListItemsSchema } from "../../types/schemas";
 
 const headers = {
   "Content-Type": "application/json",
@@ -28,7 +21,7 @@ export const listItemsHandler = async (
 ): Promise<APIGatewayProxyResult> => {
   try {
     const query = event.queryStringParameters || {};
-    const validated = listItemsSchema.safeParse(query);
+    const validated = ListItemsSchema.safeParse(query);
 
     if (!validated.success) {
       return {
