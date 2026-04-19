@@ -53,6 +53,14 @@ The trade-off is simplicity over atomicity. If two requests update the same item
 ### Authorizer Caching
 The API Gateway authorizer cache TTL is set to 0 to ensure every request is independently authorized. A non-zero TTL would reduce Secrets Manager calls and lower cost, but risks caching a deny response across endpoints during testing and initial setup.
 
+## Scalability & Performance
+
+- **DynamoDB PAY_PER_REQUEST** billing mode scales automatically with traffic without pre-provisioning capacity
+- **Lambda** scales horizontally by default. Each request gets its own function instance
+- **DynamoDB Scan** in `listItems` reads the entire table which becomes inefficient at scale. A production improvement would be to use Query with a GSI on `status` or `subject` for filtered lookups
+- **API Gateway** handles throttling and rate limiting at the edge before requests reach Lambda
+- **Authorizer caching** is currently disabled (TTL=0) for reliability during testing. Re-enabling caching in production would reduce Secrets Manager calls and improve latency
+
 ## Local Development
 
 ```bash
