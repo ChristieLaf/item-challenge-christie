@@ -71,7 +71,7 @@ export class InfrastructureStack extends cdk.Stack {
       {
         functionName: `exam-items-${stage}-createExamItem`,
         runtime: lambda.Runtime.NODEJS_22_X,
-        entry: path.join(__dirname, "../src/handlers/createItem/index.ts"),
+        entry: path.join(__dirname, "../../src/handlers/createItem/index.ts"),
         handler: "createItemHandler",
         environment: lambdaEnvironment,
         timeout: cdk.Duration.seconds(30),
@@ -85,7 +85,7 @@ export class InfrastructureStack extends cdk.Stack {
       {
         functionName: `exam-items-${stage}-getExamItem`,
         runtime: lambda.Runtime.NODEJS_22_X,
-        entry: path.join(__dirname, "../src/handlers/getItem/index.ts"),
+        entry: path.join(__dirname, "../../src/handlers/getItem/index.ts"),
         handler: "getItemHandler",
         environment: lambdaEnvironment,
         timeout: cdk.Duration.seconds(30),
@@ -99,7 +99,7 @@ export class InfrastructureStack extends cdk.Stack {
       {
         functionName: `exam-items-${stage}-updateExamItem`,
         runtime: lambda.Runtime.NODEJS_22_X,
-        entry: path.join(__dirname, "../src/handlers/updateItem/index.ts"),
+        entry: path.join(__dirname, "../../src/handlers/updateItem/index.ts"),
         handler: "updateItemHandler",
         environment: lambdaEnvironment,
         timeout: cdk.Duration.seconds(30),
@@ -113,7 +113,7 @@ export class InfrastructureStack extends cdk.Stack {
       {
         functionName: `exam-items-${stage}-listExamItems`,
         runtime: lambda.Runtime.NODEJS_22_X,
-        entry: path.join(__dirname, "../src/handlers/listItems/index.ts"),
+        entry: path.join(__dirname, "../../src/handlers/listItems/index.ts"),
         handler: "listItemsHandler",
         environment: lambdaEnvironment,
         timeout: cdk.Duration.seconds(30),
