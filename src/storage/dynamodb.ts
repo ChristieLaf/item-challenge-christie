@@ -118,11 +118,37 @@ export class DynamoDBStorage implements ItemStorage {
     lastEvaluatedKey?: Record<string, AttributeValue>;
   }> {
     // cursor-based pagination using DynamoDB LastEvaluatedKey
+    const filterExpressions: string[] = [];
+    const expressionAttributeNames: Record<string, string> = {};
+    const expressionAttributeValues: Record<string, unknown> = {};
+
+    if (query.subject) {
+      filterExpressions.push("#subject = :subject");
+      expressionAttributeNames["#subject"] = "subject";
+      expressionAttributeValues[":subject"] = query.subject;
+    }
+
+    if (query.status) {
+      filterExpressions.push("metadata.#status = :status");
+      expressionAttributeNames["#status"] = "status";
+      expressionAttributeValues[":status"] = query.status;
+    }
+
+    const filterProps =
+      filterExpressions.length > 0
+        ? {
+            FilterExpression: filterExpressions.join(" AND "),
+            ExpressionAttributeNames: expressionAttributeNames,
+            ExpressionAttributeValues: expressionAttributeValues,
+          }
+        : {};
+
     const [countResult, pageResult] = await Promise.all([
       this.client.send(
         new ScanCommand({
           TableName: this.tableName,
           Select: "COUNT",
+          ...filterProps,
         }),
       ),
       this.client.send(
@@ -130,6 +156,7 @@ export class DynamoDBStorage implements ItemStorage {
           TableName: this.tableName,
           Limit: query.limit || 10,
           ExclusiveStartKey: query.lastEvaluatedKey,
+          ...filterProps,
         }),
       ),
     ]);

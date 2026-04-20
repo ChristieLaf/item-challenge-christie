@@ -57,7 +57,8 @@ The API Gateway authorizer cache TTL is set to 0 to ensure every request is inde
 
 - **DynamoDB PAY_PER_REQUEST** billing mode scales automatically with traffic without pre-provisioning capacity
 - **Lambda** scales horizontally by default. Each request gets its own function instance
-- **DynamoDB Scan** in `listItems` reads the entire table which becomes inefficient at scale. A production improvement would be to use Query with a GSI on `status` or `subject` for filtered lookups
+- **DynamoDB Scan with FilterExpression** so `listItems` uses `ScanCommand` with a `FilterExpression` for subject and status filtering. DynamoDB applies `Limit` before `FilterExpression`, so a filtered query with `limit=5` scans exactly 5 raw items and then filters, not the other way around. As a result, a page may return fewer items than the requested limit, or even an empty `items` array, while still returning a `cursor` indicating more pages exist. Callers should paginate until no `cursor` is returned to guarantee all matching results are retrieved
+- **GSI trade-off** the correct production fix for filtered listing would be to add GSIs on `subject` and `status` and use `QueryCommand` instead of `ScanCommand`. This was intentionally deferred to avoid modifying the provided DynamoDB schema without stakeholder approval. Note that `status` is nested inside `metadata.status`, so it would need to be flattened to a top-level attribute before a GSI could be added. If approved, these GSIs would enable efficient key-condition filtering and eliminate the scan-before-filter limitation described above
 - **API Gateway** handles throttling and rate limiting at the edge before requests reach Lambda
 - **Authorizer caching** is currently disabled (TTL=0) for reliability during testing. Re-enabling caching in production would reduce Secrets Manager calls and improve latency
 
