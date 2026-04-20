@@ -2,6 +2,8 @@
  * Exam Item Types
  */
 
+import { AttributeValue } from "@aws-sdk/client-dynamodb";
+
 export interface ExamItem {
   id: string;
   subject: string; // e.g., "AP Biology", "AP Calculus"
@@ -17,7 +19,7 @@ export interface ExamItem {
     author: string;
     created: number; // timestamp
     lastModified: number; // timestamp
-    version: number; 
+    version: number;
     status: string; // "draft", "review", "approved", "archived"
     tags: string[];
   };
@@ -54,6 +56,8 @@ export interface UpdateItemRequest {
 export interface ListItemsQuery {
   limit?: number;
   offset?: number;
+  cursor?: string;
   subject?: string;
   status?: string;
+  lastEvaluatedKey?: Record<string, AttributeValue>;
 }

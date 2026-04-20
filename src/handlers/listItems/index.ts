@@ -32,7 +32,18 @@ export const listItemsHandler = async (
       };
     }
 
-    const result = await storage.listItems(validated.data);
+    const lastEvaluatedKey = validated.data.cursor
+      ? JSON.parse(decodeURIComponent(validated.data.cursor))
+      : undefined;
+
+      console.log("LastEvaluatedKey:", JSON.stringify(lastEvaluatedKey));
+
+    const result = await storage.listItems({
+      ...validated.data,
+      lastEvaluatedKey,
+    });
+
+    console.log("LastEvaluatedKey:", JSON.stringify(result.lastEvaluatedKey));
 
     logInfo("listItemsHandler", "Items listed successfully", {
       total: result.total,
@@ -46,6 +57,9 @@ export const listItemsHandler = async (
         total: result.total,
         limit: validated.data.limit || 10,
         offset: validated.data.offset || 0,
+        ...(result.lastEvaluatedKey && {
+          cursor: encodeURIComponent(JSON.stringify(result.lastEvaluatedKey)),
+        }),
       }),
     };
   } catch (error) {

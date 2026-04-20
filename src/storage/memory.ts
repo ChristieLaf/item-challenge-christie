@@ -13,6 +13,7 @@ import {
   ListItemsQuery,
 } from "../types/item.js";
 import { ItemStorage } from "./interface.js";
+import { AttributeValue } from "@aws-sdk/client-dynamodb";
 
 export class MemoryStorage implements ItemStorage {
   private items: Map<string, ExamItem> = new Map();
@@ -74,7 +75,11 @@ export class MemoryStorage implements ItemStorage {
 
   async listItems(
     query: ListItemsQuery,
-  ): Promise<{ items: ExamItem[]; total: number }> {
+  ): Promise<{
+    items: ExamItem[];
+    total: number;
+    lastEvaluatedKey?: Record<string, AttributeValue>;
+  }> {
     let items = Array.from(this.items.values());
 
     // Filter by subject

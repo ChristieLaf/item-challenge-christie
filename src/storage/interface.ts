@@ -5,13 +5,25 @@
  * Implement this interface for different storage backends (in-memory, DynamoDB, etc.)
  */
 
-import { ExamItem, CreateItemRequest, UpdateItemRequest, ListItemsQuery } from '../types/item.js';
+import {
+  ExamItem,
+  CreateItemRequest,
+  UpdateItemRequest,
+  ListItemsQuery,
+} from "../types/item.js";
+import { AttributeValue } from "@aws-sdk/client-dynamodb";
 
 export interface ItemStorage {
   createItem(data: CreateItemRequest): Promise<ExamItem>;
   getItem(id: string): Promise<ExamItem | null>;
   updateItem(id: string, data: UpdateItemRequest): Promise<ExamItem | null>;
-  listItems(query: ListItemsQuery): Promise<{ items: ExamItem[]; total: number }>;
+  listItems(
+    query: ListItemsQuery,
+  ): Promise<{
+    items: ExamItem[];
+    total: number;
+    lastEvaluatedKey?: Record<string, AttributeValue>;
+  }>;
   createVersion(id: string): Promise<ExamItem | null>;
   getAuditTrail(id: string): Promise<ExamItem[]>;
 }

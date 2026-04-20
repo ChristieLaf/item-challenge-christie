@@ -19,9 +19,7 @@ import {
   DynamoDBDocumentClient,
   PutCommand,
   GetCommand,
-  UpdateCommand,
   ScanCommand,
-  QueryCommand,
 } from "@aws-sdk/lib-dynamodb";
 import { randomUUID } from "crypto";
 import {
@@ -31,6 +29,7 @@ import {
   ListItemsQuery,
 } from "../types/item.js";
 import { ItemStorage } from "./interface.js";
+import { AttributeValue } from "@aws-sdk/client-dynamodb";
 
 export class DynamoDBStorage implements ItemStorage {
   private client: DynamoDBDocumentClient;
@@ -99,7 +98,7 @@ export class DynamoDBStorage implements ItemStorage {
         ...existing.metadata,
         ...(data.metadata || {}),
         lastModified: Date.now(),
-        version: existing.metadata.version + 1
+        version: existing.metadata.version + 1,
       },
     };
 
@@ -115,18 +114,24 @@ export class DynamoDBStorage implements ItemStorage {
 
   async listItems(
     query: ListItemsQuery,
-  ): Promise<{ items: ExamItem[]; total: number }> {
-    // Note: This is a basic implementation using Scan
-    // For production, you should use Query with appropriate indexes
+  ): Promise<{
+    items: ExamItem[];
+    total: number;
+    lastEvaluatedKey?: Record<string, AttributeValue>;
+  }> {
     const result = await this.client.send(
       new ScanCommand({
         TableName: this.tableName,
         Limit: query.limit || 10,
+        ExclusiveStartKey: query.lastEvaluatedKey,
       }),
     );
-
     const items = (result.Items || []) as ExamItem[];
-    return { items, total: result.Count || 0 };
+    return {
+      items,
+      total: result.Count || 0,
+      lastEvaluatedKey: result.LastEvaluatedKey,
+    };
   }
 
   async createVersion(id: string): Promise<ExamItem | null> {
