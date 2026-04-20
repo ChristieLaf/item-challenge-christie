@@ -14,7 +14,10 @@ export const handler = async (
   event: APIGatewayRequestAuthorizerEvent,
 ): Promise<APIGatewayAuthorizerResult> => {
   try {
-    const apiKey = event.headers?.["x-api-key"];
+    const apiKey =
+      event.headers?.["x-api-key"] ??
+      event.headers?.["X-Api-Key"] ??
+      event.headers?.["X-API-Key"];
 
     if (!apiKey) {
       throw new Error("Unauthorized");
@@ -26,9 +29,10 @@ export const handler = async (
       }),
     );
 
-    const validApiKey = secret.SecretString;
+    const validApiKey = secret.SecretString?.trim() ?? "";
+    const providedApiKey = apiKey.trim();
 
-    if (apiKey !== validApiKey) {
+    if (providedApiKey !== validApiKey) {
       throw new Error("Unauthorized");
     }
 

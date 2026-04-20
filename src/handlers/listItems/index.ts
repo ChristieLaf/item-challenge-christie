@@ -36,14 +36,10 @@ export const listItemsHandler = async (
       ? JSON.parse(decodeURIComponent(validated.data.cursor))
       : undefined;
 
-      console.log("LastEvaluatedKey:", JSON.stringify(lastEvaluatedKey));
-
     const result = await storage.listItems({
       ...validated.data,
       lastEvaluatedKey,
     });
-
-    console.log("LastEvaluatedKey:", JSON.stringify(result.lastEvaluatedKey));
 
     logInfo("listItemsHandler", "Items listed successfully", {
       total: result.total,

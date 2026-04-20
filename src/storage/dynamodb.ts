@@ -112,25 +112,34 @@ export class DynamoDBStorage implements ItemStorage {
     return updated;
   }
 
-  async listItems(
-    query: ListItemsQuery,
-  ): Promise<{
+  async listItems(query: ListItemsQuery): Promise<{
     items: ExamItem[];
     total: number;
     lastEvaluatedKey?: Record<string, AttributeValue>;
   }> {
-    const result = await this.client.send(
-      new ScanCommand({
-        TableName: this.tableName,
-        Limit: query.limit || 10,
-        ExclusiveStartKey: query.lastEvaluatedKey,
-      }),
-    );
-    const items = (result.Items || []) as ExamItem[];
+    // cursor-based pagination using DynamoDB LastEvaluatedKey
+    const [countResult, pageResult] = await Promise.all([
+      this.client.send(
+        new ScanCommand({
+          TableName: this.tableName,
+          Select: "COUNT",
+        }),
+      ),
+      this.client.send(
+        new ScanCommand({
+          TableName: this.tableName,
+          Limit: query.limit || 10,
+          ExclusiveStartKey: query.lastEvaluatedKey,
+        }),
+      ),
+    ]);
+
+    const items = (pageResult.Items || []) as ExamItem[];
+
     return {
       items,
-      total: result.Count || 0,
-      lastEvaluatedKey: result.LastEvaluatedKey,
+      total: countResult.Count || 0,
+      lastEvaluatedKey: pageResult.LastEvaluatedKey,
     };
   }
 

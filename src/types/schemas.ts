@@ -26,7 +26,7 @@ export const UpdateItemSchema = ItemSchema.extend({
 export const ListItemsSchema = z.object({
   limit: z.coerce.number().min(1).max(100).optional(),
   offset: z.coerce.number().min(0).optional(),
-  cursor: z.string().optional(),
+  cursor: z.string().optional(), // lastEvaluatedKey for DynamoDB pagination
   subject: z.string().optional(),
   status: z.enum(["draft", "review", "approved", "archived"]).optional(),
 });
