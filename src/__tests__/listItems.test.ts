@@ -133,4 +133,91 @@ describe("listItemsHandler", () => {
     expect(body.items).toHaveLength(1);
     expect(body.items[0].subject).toBe("AP Biology");
   });
+
+  it("should include cursor in response when lastEvaluatedKey is returned", async () => {
+    const lastEvaluatedKey = { id: "abc-123" };
+
+    (storage.listItems as ReturnType<typeof vi.fn>).mockResolvedValue({
+      items: [],
+      total: 5,
+      lastEvaluatedKey,
+    });
+
+    const result = await listItemsHandler(createEvent({ limit: "2" }));
+    const body = JSON.parse(result.body);
+
+    expect(result.statusCode).toBe(200);
+    expect(body).toHaveProperty("cursor");
+    expect(body.cursor).toBe(
+      encodeURIComponent(JSON.stringify(lastEvaluatedKey)),
+    );
+  });
+
+  it("should not include cursor in response when no lastEvaluatedKey is returned", async () => {
+    (storage.listItems as ReturnType<typeof vi.fn>).mockResolvedValue({
+      items: [],
+      total: 2,
+      lastEvaluatedKey: undefined,
+    });
+
+    const result = await listItemsHandler(createEvent());
+    const body = JSON.parse(result.body);
+
+    expect(result.statusCode).toBe(200);
+    expect(body).not.toHaveProperty("cursor");
+  });
+
+  it("should decode cursor and pass lastEvaluatedKey to storage", async () => {
+    const lastEvaluatedKey = { id: "abc-123" };
+    const cursor = encodeURIComponent(JSON.stringify(lastEvaluatedKey));
+
+    (storage.listItems as ReturnType<typeof vi.fn>).mockResolvedValue({
+      items: [],
+      total: 5,
+    });
+
+    await listItemsHandler(createEvent({ cursor }));
+
+    expect(storage.listItems).toHaveBeenCalledWith(
+      expect.objectContaining({ lastEvaluatedKey }),
+    );
+  });
+
+  it("should filter items by status", async () => {
+    const mockItems = [
+      {
+        id: "456",
+        subject: "AP Calculus",
+        itemType: "multiple-choice",
+        difficulty: 4,
+        content: {
+          question: "What is a derivative?",
+          options: ["A", "B", "C", "D"],
+          correctAnswer: "B",
+          explanation: "A derivative measures rate of change.",
+        },
+        metadata: {
+          author: "test-author",
+          status: "approved",
+          tags: ["calculus"],
+          created: 1234567890,
+          lastModified: 1234567890,
+          version: 1,
+        },
+        securityLevel: "standard",
+      },
+    ];
+
+    (storage.listItems as ReturnType<typeof vi.fn>).mockResolvedValue({
+      items: mockItems,
+      total: 1,
+    });
+
+    const result = await listItemsHandler(createEvent({ status: "approved" }));
+    const body = JSON.parse(result.body);
+
+    expect(result.statusCode).toBe(200);
+    expect(body.items).toHaveLength(1);
+    expect(body.items[0].metadata.status).toBe("approved");
+  });
 });
