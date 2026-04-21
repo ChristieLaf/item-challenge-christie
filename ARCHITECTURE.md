@@ -69,16 +69,44 @@ pnpm install
 pnpm dev
 ```
 
-The local server runs on port 3000 and uses in-memory storage. The API is already deployed to a dev environment. Set `USE_DYNAMODB=true` and `DYNAMODB_TABLE_NAME=exam-items-dev` in a `.env` file at the project root only if you want to connect to the deployed DynamoDB table when running locally. Remove or comment out those lines to return to in-memory storage.
+The local server runs on port 3000 and uses in-memory storage. The API is already deployed to a dev environment. Set `USE_DYNAMODB=true` and `DYNAMODB_TABLE_NAME=exam-items-dev` in a `.env` file at the project root only if you want to connect to the deployed DynamoDB table when running locally. Remove or comment out those lines to return to in-memory storage. Restart the server for the change to take effect by pressing Ctrl+C 
+and running pnpm dev again.
+
+The deployed API at https://d7inheammf.execute-api.us-east-1.amazonaws.com/prod/ runs independently on AWS and does not require the local server to be running.
 
 ## Deployment
 
 The API is already deployed. The base URL is: https://d7inheammf.execute-api.us-east-1.amazonaws.com/prod/
 
-To deploy your own instance, configure AWS credentials and create the API key secret in Secrets Manager as `exam-items-{stage}-api-key`, then run:
+To deploy your own instance:
 
+1. Configure AWS credentials by either exporting them in your terminal:
 
 ```bash
-cd infrastructure
-cdk deploy
+   export AWS_ACCESS_KEY_ID=your-access-key
+   export AWS_SECRET_ACCESS_KEY=your-secret-key
+   export AWS_DEFAULT_REGION=us-east-1
 ```
+
+Or add them to a `.env` file at the project root:
+
+```
+   AWS_ACCESS_KEY_ID=your-access-key
+   AWS_SECRET_ACCESS_KEY=your-secret-key
+   AWS_DEFAULT_REGION=us-east-1
+```
+
+2. Create the API key secret in Secrets Manager as `exam-items-{stage}-api-key`
+
+3. Deploy the stack:
+
+```bash
+   cd infrastructure
+   cdk deploy
+```
+
+## Testing with Postman
+
+Postman collections are included in the root directory as `Item Challenge - Deployed.postman_collection.json` and `Item Challenge - Local.postman_collection.json`. Import either into Postman to test all endpoints.
+
+All deployed requests require an `x-api-key` header. Paste in the API key provided to you directly to authenticate requests.
