@@ -69,7 +69,7 @@ pnpm install
 pnpm dev
 ```
 
-The local server runs on port 3000 and uses in-memory storage. The API is already deployed to a dev environment. Set `USE_DYNAMODB=true` and `DYNAMODB_TABLE_NAME=exam-items-dev` in a `.env` file at the project root only if you want to connect to the deployed DynamoDB table when running locally. 
+The local server runs on port 3000 and uses in-memory storage. The API is already deployed to a dev environment. Set `USE_DYNAMODB=true` and `DYNAMODB_TABLE_NAME=exam-items-dev` in a `.env` file at the project root only if you want to connect to the deployed DynamoDB table when running locally. Remove or comment out those lines to return to in-memory storage.
 
 ## Deployment
 

@@ -136,6 +136,8 @@ The API is deployed and available at:
 
 https://d7inheammf.execute-api.us-east-1.amazonaws.com/prod/
 
+The deployed DynamoDB table is pre-populated with test data across multiple subjects and statuses so you can test pagination and filtering immediately without creating items first.
+
 ### Endpoints Implemented
 - `POST /api/items` — Create a new exam item
 - `GET /api/items/:id` — Retrieve an item by ID
@@ -151,7 +153,8 @@ All deployed requests require an `x-api-key` header. Please contact Jeb directly
 `GET /api/items` supports the following query parameters:
 - `limit` — number of items to return (default: 10, max: 100)
 - `offset` — number of items to skip for pagination (default: 0)
-- `subject` — filter by subject (e.g. `AP Biology`)
+- `cursor` — pagination cursor returned from a previous response; pass this to retrieve the next page (DynamoDB only)
+- `subject` — filter by subject (e.g. `AP Biology`, `AP Calculus`, `AP Psychology`)
 - `status` — filter by status (`draft`, `review`, `approved`, `archived`)
 
 Examples:
