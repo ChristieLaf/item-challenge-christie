@@ -9,8 +9,42 @@
     {
       "name": "Create Item",
       "request": {
-        "method": "GET",
-        "header": []
+        "auth": {
+          "type": "apikey"
+        },
+        "method": "POST",
+        "header": [
+          {
+            "key": "x-api-key",
+            "value": "YOUR_API_KEY_HERE",
+            "type": "text"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"subject\": \"AP Biology\",\n  \"itemType\": \"multiple-choice\",\n  \"difficulty\": 3,\n  \"content\": {\n    \"question\": \"What is photosynthesis?\",\n    \"options\": [\"A\", \"B\", \"C\", \"D\"],\n    \"correctAnswer\": \"A\",\n    \"explanation\": \"Photosynthesis is the process...\"\n  },\n  \"metadata\": {\n    \"author\": \"test-author\",\n    \"status\": \"draft\",\n    \"tags\": [\"biology\"]\n  },\n  \"securityLevel\": \"standard\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "https://d7inheammf.execute-api.us-east-1.amazonaws.com/prod/api/items",
+          "protocol": "https",
+          "host": [
+            "d7inheammf",
+            "execute-api",
+            "us-east-1",
+            "amazonaws",
+            "com"
+          ],
+          "path": [
+            "prod",
+            "api",
+            "items"
+          ]
+        }
       },
       "response": []
     },
@@ -18,15 +52,70 @@
       "name": "Get Item by ID",
       "request": {
         "method": "GET",
-        "header": []
+        "header": [
+          {
+            "key": "x-api-key",
+            "value": "YOUR_API_KEY_HERE",
+            "type": "text"
+          }
+        ],
+        "url": {
+          "raw": "https://d7inheammf.execute-api.us-east-1.amazonaws.com/prod/api/items/{id}",
+          "protocol": "https",
+          "host": [
+            "d7inheammf",
+            "execute-api",
+            "us-east-1",
+            "amazonaws",
+            "com"
+          ],
+          "path": [
+            "prod",
+            "api",
+            "items",
+            "{id}"
+          ]
+        }
       },
       "response": []
     },
     {
       "name": "Update Item",
       "request": {
-        "method": "GET",
-        "header": []
+        "method": "PUT",
+        "header": [
+          {
+            "key": "x-api-key",
+            "value": "YOUR_API_KEY_HERE",
+            "type": "text"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"difficulty\": 5,\n  \"metadata\": {\n    \"status\": \"approved\"\n  }\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "https://d7inheammf.execute-api.us-east-1.amazonaws.com/prod/api/items/{id}",
+          "protocol": "https",
+          "host": [
+            "d7inheammf",
+            "execute-api",
+            "us-east-1",
+            "amazonaws",
+            "com"
+          ],
+          "path": [
+            "prod",
+            "api",
+            "items",
+            "{id}"
+          ]
+        }
       },
       "response": []
     },
@@ -34,7 +123,39 @@
       "name": "List Items",
       "request": {
         "method": "GET",
-        "header": []
+        "header": [
+          {
+            "key": "x-api-key",
+            "value": "YOUR_API_KEY_HERE",
+            "type": "text"
+          }
+        ],
+        "url": {
+          "raw": "https://d7inheammf.execute-api.us-east-1.amazonaws.com/prod/api/items?limit=2&offset=0",
+          "protocol": "https",
+          "host": [
+            "d7inheammf",
+            "execute-api",
+            "us-east-1",
+            "amazonaws",
+            "com"
+          ],
+          "path": [
+            "prod",
+            "api",
+            "items"
+          ],
+          "query": [
+            {
+              "key": "limit",
+              "value": "2"
+            },
+            {
+              "key": "offset",
+              "value": "0"
+            }
+          ]
+        }
       },
       "response": []
     }
