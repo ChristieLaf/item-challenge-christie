@@ -159,7 +159,11 @@ All deployed requests require an `x-api-key` header. Please contact Jeb directly
 
 Examples:
 - Local: `http://localhost:3000/api/items?limit=2&offset=0`
+- Local: `http://localhost:3000/api/items?subject=AP Biology&status=draft`
 - Deployed: `https://d7inheammf.execute-api.us-east-1.amazonaws.com/prod/api/items?subject=AP Biology`
+- Deployed: `https://d7inheammf.execute-api.us-east-1.amazonaws.com/prod/api/items?status=draft&limit=5`
+- Deployed (combined): `https://d7inheammf.execute-api.us-east-1.amazonaws.com/prod/api/items?subject=AP Biology&status=draft&limit=5`
+- Deployed (next page): `https://d7inheammf.execute-api.us-east-1.amazonaws.com/prod/api/items?limit=5&cursor={cursor from previous response}`
 
 ## Submission
 
